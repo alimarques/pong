@@ -17,6 +17,8 @@ PADDLE_HEIGHT = 20
 
 BALL_SIZE = 4
 
+FINAL_SCORE = 3
+
 -- Configuracoes iniciais de load
 function love.load()
     love.graphics.setDefaultFilter('nearest', 'nearest')
@@ -27,8 +29,11 @@ function love.load()
         vsync = true -- taxa de atualizacao da tela sincronizada com a sua tela
     })
 
-    smallFont = love.graphics.newFont('font.ttf', 8)
-    regularFont = love.graphics.newFont('font.ttf', 12)
+    smallFont = love.graphics.newFont('font.ttf', 20)
+    regularFont = love.graphics.newFont('font.ttf', 32)
+
+    servingPlayer = 0 -- Define quem vai comecar a rodada
+    winningPlayer = 0
 
     scoreP1 = 0
     scoreP2 = 0
@@ -61,6 +66,32 @@ function love.update(dt)
 
     if ball:collide(player1) or ball:collide(player2) then
         ball.dx = -ball.dx
+        ball.dx = ball.dx * 1.05
+    end
+
+    if ball.x < 0 then
+        scoreP2 = scoreP2 + 1
+        ball:reset()
+
+        if scoreP2 >= FINAL_SCORE then
+            gameState = 'done'
+            winningPlayer = 2
+        else
+            gameState = 'serve'
+            servingPlayer = 1
+        end
+    elseif ball.x > VIRTUAL_WIDTH then
+        scoreP1 = scoreP1 + 1
+        ball:reset()
+        servingPlayer = 2
+
+        if scoreP1 >= FINAL_SCORE then
+            gameState = 'done'
+            winningPlayer = 1
+        else
+            gameState = 'serve'
+            servingPlayer = 2
+        end
     end
 
     if gameState == 'play' then
@@ -76,21 +107,42 @@ function love.keypressed(key)
     if key == 'escape' then
         love.event.quit()
     elseif key == 'enter' or key == 'return' then
-        gameState = 'play' -- Comeca o jogo
-        ball:reset()
+        if gameState == 'start' then
+            gameState = 'play'
+            ball:reset()
+        elseif gameState == 'serve' then
+            gameState = 'play'
+            ball:reset()
+            if servingPlayer == 1 then
+                ball.dx = -100
+            else
+                ball.dx = 100
+            end
+        elseif gameState == 'done' then
+            gameState = 'start'
+            scoreP1 = 0
+            scoreP2 = 0
+        end
     end
 end
 
 function love.draw()
     push:apply('start')
 
-    love.graphics.setFont(regularFont)
-    love.graphics.printf(scoreP1, -30, 30, VIRTUAL_WIDTH, "center")
-    love.graphics.printf(scoreP2, 30, 30, VIRTUAL_WIDTH, "center")
-
-    player1:render()
-    player2:render()
-    ball:render()
+    if gameState == 'done' then
+        love.graphics.setFont(regularFont)
+        love.graphics.printf("Player " .. tostring(winningPlayer) .. " ganhou!", 0, VIRTUAL_HEIGHT / 2 - 20, VIRTUAL_WIDTH, "center")
+        love.graphics.setFont(smallFont)
+        love.graphics.printf("Aperte Enter para reiniciar", 0, VIRTUAL_HEIGHT / 2 + 20, VIRTUAL_WIDTH, "center")
+    else
+        love.graphics.setFont(regularFont)
+        love.graphics.printf(scoreP1, -30, 30, VIRTUAL_WIDTH, "center")
+        love.graphics.printf(scoreP2, 30, 30, VIRTUAL_WIDTH, "center")
+        
+        player1:render()
+        player2:render()
+        ball:render()
+    end
 
     push:apply('end')
 end
