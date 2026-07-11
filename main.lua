@@ -59,6 +59,10 @@ function love.update(dt)
         player2.dy = 0
     end
 
+    if ball:collide(player1) or ball:collide(player2) then
+        ball.dx = -ball.dx
+    end
+
     if gameState == 'play' then
         ball:update(dt)
     end

@@ -18,6 +18,18 @@ function Ball:reset()
     self.dy = math.random(-50, 50)    
 end
 
+function Ball:collide(player)
+    if (self.x >= player.x + player.width) or (player.x >= self.x + self.size) then
+        return false
+    end
+
+    if (self.y >= player.y + player.height) or (player.y >= self.y + self.size) then
+        return false
+    end
+
+    return true
+end
+
 function Ball:update(dt)
     self.x = self.x + self.dx * dt
     self.y = self.y + self.dy * dt
