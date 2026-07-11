@@ -35,6 +35,7 @@ function Ball:update(dt)
     self.y = self.y + self.dy * dt
 
     if self.y <= 0 or self.y >= (VIRTUAL_HEIGHT - self.size) then
+        sounds['wall_hit']:play()
         self.dy = -self.dy
     end
 end
